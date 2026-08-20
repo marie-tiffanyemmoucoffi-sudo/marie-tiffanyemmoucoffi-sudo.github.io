@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éco-Chantier Challenge</title>
+    <style>
+        :root {
+            --primary-green: #2E7D32;
+            --light-green: #E8F5E9;
+            --dark-text: #212121;
+            --light-text: #FFFFFF;
+            --border-color: #BDBDBD;
+            --background-color: #f7f9f8;
+            --correct-color: #4CAF50;
+            --incorrect-color: #D32F2F;
+            --hover-bg: #C8E6C9;
+            --card-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            --card-hover-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--dark-text);
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh;
+        }
+        .game-container {
+            width: 100%; max-width: 1200px;
+            background-color: var(--light-text);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 20px 30px;
+            border-top: 5px solid var(--primary-green);
+        }
+        header { text-align: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 25px; }
+        h1 { color: var(--primary-green); margin: 0; font-size: 2.2rem; }
+        header p { margin: 5px 0 0; font-size: 1.1rem; color: #616161; }
+        .stats { display: flex; justify-content: space-around; margin-top: 20px; font-size: 1.2rem; font-weight: 500; }
+        .stats span { background-color: var(--light-green); padding: 8px 15px; border-radius: 20px; color: var(--primary-green); min-width: 120px; text-align: center; }
+        .game-area { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        #draggable-items, #drop-zones { display: flex; flex-direction: column; gap: 15px; }
+        .draggable-item {
+            background-color: var(--light-text); border: 1px solid var(--border-color);
+            border-left: 5px solid var(--primary-green); padding: 15px 20px; border-radius: 8px;
+            cursor: grab; font-size: 1rem; font-weight: 600; text-align: center;
+            transition: all 0.2s ease-in-out; box-shadow: var(--card-shadow);
+        }
+        .draggable-item:hover { box-shadow: var(--card-hover-shadow); transform: translateY(-2px); }
+        .draggable-item.dragging { opacity: 0.5; cursor: grabbing; box-shadow: none; background-color: var(--hover-bg); }
+        .drop-zone {
+            background-color: #fafafa; border: 2px dashed var(--border-color); border-radius: 8px;
+            padding: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease-in-out; position: relative; flex-direction: column;
+        }
+        .drop-zone-content { font-size: 0.95rem; color: #424242; line-height: 1.5; }
+        .drop-zone.hover { border-color: var(--primary-green); background-color: var(--light-green); }
+        .drop-zone.correct { border-style: solid; border-color: var(--correct-color); background-color: var(--correct-color); color: var(--light-text); }
+        .drop-zone.correct .draggable-item { cursor: not-allowed; background: none; border: none; box-shadow: none; color: var(--light-text); padding: 0; font-size: 1.1rem; }
+        .drop-zone.correct .drop-zone-content { color: var(--light-text); padding-top: 8px; opacity: 0.9; }
+        .draggable-item.shake { animation: shake 0.5s ease-in-out; border-left-color: var(--incorrect-color); }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+        #restart-btn {
+            background-color: var(--primary-green); color: var(--light-text); border: none;
+            padding: 12px 25px; font-size: 1rem; font-weight: 600; border-radius: 8px;
+            cursor: pointer; transition: background-color 0.2s;
+        }
+        #restart-btn:hover { background-color: #1B5E20; }
+        #completion-message {
+            display: none; text-align: center; padding: 20px; background-color: var(--light-green);
+            border-radius: 8px; margin-bottom: 20px; animation: fadeIn 0.5s ease-out;
+        }
+        #completion-message h2 { color: var(--primary-green); margin: 0 0 10px; }
+        @media (max-width: 900px) {
+            .game-area { grid-template-columns: 1fr; }
+            #draggable-items { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+            .draggable-item { flex-basis: 150px; }
+        }
+        @media (max-width: 600px) {
+            body { padding: 10px; } .game-container { padding: 15px; } h1 { font-size: 1.8rem; }
+            .stats { flex-direction: column; gap: 10px; align-items: center; }
+            #draggable-items { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>🏗️ Éco-Chantier Challenge</h1>
+            <p>Glissez chaque document vers sa description correspondante</p>
+            <div class="stats">
+                <span>🎯 Score : <strong id="score">0</strong>/6</span>
+                <span>⏱️ Temps : <strong id="timer">0s</strong></span>
+            </div>
+        </header>
+        <div id="completion-message">
+            <h2>🎉 Bravo, challenge réussi ! 🎉</h2>
+            <p id="completion-text"></p>
+        </div>
+        <main class="game-area">
+            <div id="draggable-items"></div>
+            <div id="drop-zones"></div>
+        </main>
+        <footer class="footer">
+            <button id="restart-btn">🔄 Recommencer</button>
+        </footer>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameData = [
+                { id: 1, doc: "Mémoire Environnement", desc: "Document de réponse à appel d'offres présentant la politique environnementale de l'entreprise, les mesures pour limiter les impacts du chantier (déchets, nuisances, biodiversité, ressources) et les certifications détenues (ISO 14001, HQE…)." },
+                { id: 2, doc: "SOGED", desc: "Schéma d'Organisation et de Gestion des Déchets : feuille de route opérationnelle décrivant le tri, la collecte, le transport, la traçabilité (BSD) et les filières de valorisation/élimination des déchets de chantier." },
+                { id: 3, doc: "PAQ (Plan de contrôle)", desc: "Plan d'Assurance Qualité : document contractuel détaillant les procédures de contrôle interne, les points d'arrêt, les essais, la gestion des non-conformités et la traçabilité pour garantir la conformité des travaux au CCTP." },
+                { id: 4, doc: "SEVE", desc: "Éco-comparateur en ligne pour les Travaux Publics permettant d'évaluer et comparer l'impact environnemental (émissions CO₂, énergie, ressources) de différentes variantes techniques d'un projet routier ou VRD." },
+                { id: 5, doc: "PRE", desc: "Plan de Respect de l'Environnement : document opérationnel propre au chantier identifiant les risques environnementaux (eau, sol, bruit, air, faune/flore) et définissant les mesures de prévention, les procédures d'urgence et les responsabilités." },
+                { id: 6, doc: "Registre des Terres Excavées", desc: "Registre chronologique obligatoire (loi AGEC 2020) traçant chaque lot de terres excavées : origine, code déchet, quantité, destination et filière. Données à déclarer au RNDTS pour les volumes ≥ 500 m³." },
+            ];
+            const draggableContainer = document.getElementById('draggable-items');
+            const dropzoneContainer = document.getElementById('drop-zones');
+            const scoreEl = document.getElementById('score');
+            const timerEl = document.getElementById('timer');
+            const completionMessage = document.getElementById('completion-message');
+            const completionText = document.getElementById('completion-text');
+            const restartBtn = document.getElementById('restart-btn');
+            let score = 0, timerInterval, seconds = 0, draggedItem = null, gameStarted = false;
+
+            function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
+            function startTimer() { if (gameStarted) return; gameStarted = true; timerInterval = setInterval(() => { seconds++; timerEl.textContent = seconds + 's'; }, 1000); }
+            function stopTimer() { clearInterval(timerInterval); }
+
+            function initGame() {
+                score = 0; seconds = 0; gameStarted = false; stopTimer();
+                scoreEl.textContent = '0'; timerEl.textContent = '0s';
+                completionMessage.style.display = 'none';
+                draggableContainer.innerHTML = ''; dropzoneContainer.innerHTML = '';
+
+                const shuffledDocs = [...gameData]; shuffleArray(shuffledDocs);
+                const shuffledZones = [...gameData]; shuffleArray(shuffledZones);
+
+                shuffledDocs.forEach(item => {
+                    const el = document.createElement('div');
+                    el.classList.add('draggable-item'); el.setAttribute('draggable', 'true');
+                    el.dataset.id = item.id; el.textContent = item.doc;
+                    draggableContainer.appendChild(el);
+                });
+
+                shuffledZones.forEach(item => {
+                    const zone = document.createElement('div');
+                    zone.classList.add('drop-zone'); zone.dataset.id = item.id;
+                    const content = document.createElement('div');
+                    content.classList.add('drop-zone-content'); content.textContent = item.desc;
+                    zone.appendChild(content); dropzoneContainer.appendChild(zone);
+                });
+                addDragListeners();
+            }
+
+            function addDragListeners() {
+                document.querySelectorAll('.draggable-item').forEach(d => {
+                    d.addEventListener('dragstart', e => { startTimer(); draggedItem = d; d.classList.add('dragging'); e.dataTransfer.setData('text/plain', d.dataset.id); });
+                    d.addEventListener('dragend', () => { d.classList.remove('dragging'); draggedItem = null; });
+                });
+                document.querySelectorAll('.drop-zone').forEach(z => {
+                    z.addEventListener('dragover', e => { e.preventDefault(); if (!z.classList.contains('correct')) z.classList.add('hover'); });
+                    z.addEventListener('dragleave', () => z.classList.remove('hover'));
+                    z.addEventListener('drop', e => {
+                        e.preventDefault(); z.classList.remove('hover');
+                        if (z.classList.contains('correct')) return;
+                        const draggedId = e.dataTransfer.getData('text/plain');
+                        if (draggedId === z.dataset.id) { handleCorrect(draggedItem, z); } else { handleIncorrect(draggedItem); }
+                    });
+                });
+                // Touch support (tap to select, tap to place)
+                let selectedItem = null;
+                document.body.addEventListener('click', e => {
+                    const target = e.target;
+                    if (target.classList.contains('draggable-item') && target.draggable) {
+                        startTimer();
+                        if (selectedItem) selectedItem.classList.remove('dragging');
+                        selectedItem = target; selectedItem.classList.add('dragging');
+                    } else if (target.closest('.drop-zone') && selectedItem) {
+                        const zone = target.closest('.drop-zone');
+                        if (zone.classList.contains('correct')) return;
+                        if (selectedItem.dataset.id === zone.dataset.id) { handleCorrect(selectedItem, zone); }
+                        else { handleIncorrect(selectedItem); }
+                        selectedItem.classList.remove('dragging'); selectedItem = null;
+                    } else { if (selectedItem) { selectedItem.classList.remove('dragging'); selectedItem = null; } }
+                });
+            }
+
+            function handleCorrect(item, zone) {
+                score++; scoreEl.textContent = score;
+                zone.classList.add('correct'); zone.innerHTML = '';
+                zone.appendChild(item); item.setAttribute('draggable', 'false'); item.classList.remove('dragging');
+                const descEl = document.createElement('div'); descEl.className = 'drop-zone-content';
+                descEl.textContent = gameData.find(d => d.id == zone.dataset.id).desc;
+                zone.appendChild(descEl);
+                if (score === gameData.length) {
+                    stopTimer();
+                    completionText.textContent = 'Tous les documents associés en ' + seconds + ' secondes. Vous maîtrisez vos outils environnementaux ! 💪';
+                    completionMessage.style.display = 'block';
+                }
+            }
+
+            function handleIncorrect(item) {
+                item.classList.add('shake');
+                setTimeout(() => item.classList.remove('shake'), 500);
+            }
+
+            restartBtn.addEventListener('click', initGame);
+            initGame();
+        });
+    </script>
+</body>
+</html>

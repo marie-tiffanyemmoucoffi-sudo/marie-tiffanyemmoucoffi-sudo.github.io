@@ -3,222 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Éco-Chantier Challenge</title>
+    <title>🏗️ Éco-Chantier Challenge</title>
     <style>
         :root {
-            --primary-green: #2E7D32;
-            --light-green: #E8F5E9;
-            --dark-text: #212121;
-            --light-text: #FFFFFF;
-            --border-color: #BDBDBD;
-            --background-color: #f7f9f8;
-            --correct-color: #4CAF50;
-            --incorrect-color: #D32F2F;
-            --hover-bg: #C8E6C9;
-            --card-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            --card-hover-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            --primary: #2a9d8f;
+            --primary-light: #e9f5f4;
+            --success: #28a745;
+            --success-light: #d4edda;
+            --error: #dc3545;
+            --error-light: #f8d7da;
+            --text-dark: #212529;
+            --text-light: #f8f9fa;
+            --border: #dee2e6;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.07);
+            --radius: 12px;
         }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--background-color);
-            color: var(--dark-text);
-            margin: 0; padding: 20px;
-            display: flex; justify-content: center; align-items: flex-start;
-            min-height: 100vh;
+            background: var(--bg); color: var(--text-dark);
+            font-size: 16px; line-height: 1.6; padding: 0.75rem;
+            -webkit-tap-highlight-color: transparent;
         }
-        .game-container {
-            width: 100%; max-width: 1200px;
-            background-color: var(--light-text);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 20px 30px;
-            border-top: 5px solid var(--primary-green);
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake {
+            10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); }
+            30%, 50%, 70% { transform: translateX(-6px); } 40%, 60% { transform: translateX(6px); }
         }
-        header { text-align: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 25px; }
-        h1 { color: var(--primary-green); margin: 0; font-size: 2.2rem; }
-        header p { margin: 5px 0 0; font-size: 1.1rem; color: #616161; }
-        .stats { display: flex; justify-content: space-around; margin-top: 20px; font-size: 1.2rem; font-weight: 500; }
-        .stats span { background-color: var(--light-green); padding: 8px 15px; border-radius: 20px; color: var(--primary-green); min-width: 120px; text-align: center; }
-        .game-area { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
-        #draggable-items, #drop-zones { display: flex; flex-direction: column; gap: 15px; }
-        .draggable-item {
-            background-color: var(--light-text); border: 1px solid var(--border-color);
-            border-left: 5px solid var(--primary-green); padding: 15px 20px; border-radius: 8px;
-            cursor: grab; font-size: 1rem; font-weight: 600; text-align: center;
-            transition: all 0.2s ease-in-out; box-shadow: var(--card-shadow);
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(42,157,143,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(42,157,143,0); }
+            100% { box-shadow: 0 0 0 0 rgba(42,157,143,0); }
         }
-        .draggable-item:hover { box-shadow: var(--card-hover-shadow); transform: translateY(-2px); }
-        .draggable-item.dragging { opacity: 0.5; cursor: grabbing; box-shadow: none; background-color: var(--hover-bg); }
-        .drop-zone {
-            background-color: #fafafa; border: 2px dashed var(--border-color); border-radius: 8px;
-            padding: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s ease-in-out; position: relative; flex-direction: column;
+
+        .game-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; animation: fadeIn 0.5s ease-out; }
+
+        /* --- HEADER --- */
+        .game-header {
+            text-align: center; padding: 1rem; background: var(--white);
+            border-radius: var(--radius); box-shadow: var(--shadow);
         }
-        .drop-zone-content { font-size: 0.95rem; color: #424242; line-height: 1.5; }
-        .drop-zone.hover { border-color: var(--primary-green); background-color: var(--light-green); }
-        .drop-zone.correct { border-style: solid; border-color: var(--correct-color); background-color: var(--correct-color); color: var(--light-text); }
-        .drop-zone.correct .draggable-item { cursor: not-allowed; background: none; border: none; box-shadow: none; color: var(--light-text); padding: 0; font-size: 1.1rem; }
-        .drop-zone.correct .drop-zone-content { color: var(--light-text); padding-top: 8px; opacity: 0.9; }
-        .draggable-item.shake { animation: shake 0.5s ease-in-out; border-left-color: var(--incorrect-color); }
-        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
-        #restart-btn {
-            background-color: var(--primary-green); color: var(--light-text); border: none;
-            padding: 12px 25px; font-size: 1rem; font-weight: 600; border-radius: 8px;
-            cursor: pointer; transition: background-color 0.2s;
+        .game-header h1 { font-size: 1.4rem; color: var(--primary); margin-bottom: 0.25rem; }
+        .game-header .subtitle { font-size: 0.9rem; color: #888; margin-bottom: 0.75rem; }
+        .stats { display: flex; justify-content: center; gap: 1rem; font-size: 1rem; font-weight: 600; }
+        .stat-badge {
+            background: var(--primary-light); color: var(--primary);
+            padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.95rem;
         }
-        #restart-btn:hover { background-color: #1B5E20; }
-        #completion-message {
-            display: none; text-align: center; padding: 20px; background-color: var(--light-green);
-            border-radius: 8px; margin-bottom: 20px; animation: fadeIn 0.5s ease-out;
+
+        /* --- INSTRUCTION --- */
+        .instruction {
+            text-align: center; font-weight: 600; color: var(--primary);
+            padding: 0.6rem; background: var(--primary-light); border-radius: 8px;
+            font-size: 0.95rem;
         }
-        #completion-message h2 { color: var(--primary-green); margin: 0 0 10px; }
-        @media (max-width: 900px) {
-            .game-area { grid-template-columns: 1fr; }
-            #draggable-items { flex-direction: row; flex-wrap: wrap; justify-content: center; }
-            .draggable-item { flex-basis: 150px; }
+
+        /* --- SECTIONS --- */
+        .game-area { display: flex; flex-direction: column; gap: 1rem; }
+        .section {
+            background: var(--white); border-radius: var(--radius);
+            padding: 1rem; box-shadow: var(--shadow);
         }
-        @media (max-width: 600px) {
-            body { padding: 10px; } .game-container { padding: 15px; } h1 { font-size: 1.8rem; }
-            .stats { flex-direction: column; gap: 10px; align-items: center; }
-            #draggable-items { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+        .section h2 {
+            font-size: 1.1rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-light); color: var(--primary);
+        }
+        .items-list, .targets-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+        /* --- DOCUMENT CARDS (draggable) --- */
+        .doc-card {
+            padding: 0.9rem 1rem; background: #f8f9fa; border: 2px solid var(--border);
+            border-left: 5px solid var(--primary); border-radius: 8px;
+            font-weight: 700; font-size: 1rem; text-align: center;
+            cursor: pointer; transition: all 0.2s; user-select: none;
+            touch-action: manipulation; min-height: 48px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .doc-card:active { transform: scale(0.97); }
+        .doc-card.selected {
+            background: var(--primary-light); border-color: var(--primary);
+            border-left-width: 5px; color: var(--primary);
+            animation: pulse 1.2s infinite;
+        }
+        .doc-card.matched {
+            opacity: 0.4; pointer-events: none; cursor: default;
+            background: #e9ecef; border-color: #ccc; animation: none;
+            text-decoration: line-through;
+        }
+        .doc-card.dragging { opacity: 0.4; }
+
+        /* --- DESCRIPTION TARGETS --- */
+        .desc-target {
+            padding: 1rem; background: #fafbfc; border: 2px dashed var(--border);
+            border-radius: 8px; transition: all 0.2s; min-height: 60px;
+            cursor: pointer; font-size: 0.95rem; color: #444;
+            touch-action: manipulation; user-select: none;
+        }
+        .desc-target.drag-over { border-color: var(--primary); background: var(--primary-light); }
+        .desc-target.correct {
+            background: var(--success-light); border: 2px solid var(--success);
+            border-style: solid; pointer-events: none; cursor: default;
+        }
+        .desc-target.correct .match-title {
+            display: block; font-weight: 800; color: var(--success);
+            margin-bottom: 0.4rem; font-size: 1rem;
+        }
+        .desc-target.correct .match-desc { font-size: 0.9rem; color: #155724; }
+        .desc-target.incorrect {
+            animation: shake 0.5s ease-in-out;
+            border-color: var(--error); background: var(--error-light);
+        }
+        .match-title { display: none; }
+
+        /* --- FOOTER --- */
+        .game-footer { text-align: center; padding-bottom: 1rem; }
+        .btn-reset {
+            width: 100%; max-width: 300px; padding: 0.85rem 1.5rem;
+            font-size: 1.05rem; font-weight: 700; color: var(--text-light);
+            background: var(--primary); border: none; border-radius: 8px;
+            cursor: pointer; min-height: 48px; transition: background 0.2s;
+        }
+        .btn-reset:hover { background: #218074; }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: flex; justify-content: center;
+            align-items: center; z-index: 1000;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-box {
+            background: var(--white); padding: 2rem; border-radius: var(--radius);
+            text-align: center; width: 90%; max-width: 380px;
+            transform: scale(0.9); transition: transform 0.3s;
+        }
+        .modal-overlay.show .modal-box { transform: scale(1); }
+        .modal-box .emoji { font-size: 3rem; margin-bottom: 0.5rem; }
+        .modal-box h2 { color: var(--success); font-size: 1.6rem; margin-bottom: 0.5rem; border: none; }
+        .modal-box p { color: #555; margin-bottom: 1.5rem; font-size: 1.05rem; }
+        .btn-replay {
+            padding: 0.85rem 2rem; font-size: 1.1rem; font-weight: 700;
+            color: var(--text-light); background: var(--success); border: none;
+            border-radius: 8px; cursor: pointer; min-height: 48px;
+        }
+
+        /* --- DESKTOP --- */
+        @media (min-width: 1024px) {
+            body { padding: 2rem; }
+            .game-header h1 { font-size: 2rem; }
+            .game-area { flex-direction: row; gap: 2rem; align-items: flex-start; }
+            .section { flex: 1; }
+            .instruction { display: none; }
+            .doc-card, .desc-target { padding: 1.1rem; }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <header>
-            <h1>🏗️ Éco-Chantier Challenge</h1>
-            <p>Glissez chaque document vers sa description correspondante</p>
-            <div class="stats">
-                <span>🎯 Score : <strong id="score">0</strong>/6</span>
-                <span>⏱️ Temps : <strong id="timer">0s</strong></span>
-            </div>
-        </header>
-        <div id="completion-message">
-            <h2>🎉 Bravo, challenge réussi ! 🎉</h2>
-            <p id="completion-text"></p>
+
+<main class="game-container">
+    <header class="game-header">
+        <h1>🏗️ Éco-Chantier Challenge</h1>
+        <p class="subtitle">Associez chaque document à sa description</p>
+        <div class="stats">
+            <span class="stat-badge">🎯 <span id="score">0</span> / 6</span>
+            <span class="stat-badge">⏱️ <span id="timer">00:00</span></span>
         </div>
-        <main class="game-area">
-            <div id="draggable-items"></div>
-            <div id="drop-zones"></div>
-        </main>
-        <footer class="footer">
-            <button id="restart-btn">🔄 Recommencer</button>
-        </footer>
+    </header>
+
+    <div class="instruction" id="instruction">👆 Tapez un document, puis tapez sa description</div>
+
+    <div class="game-area">
+        <section class="section">
+            <h2>📄 Documents</h2>
+            <div class="items-list" id="itemsList"></div>
+        </section>
+        <section class="section">
+            <h2>📋 Descriptions</h2>
+            <div class="targets-list" id="targetsList"></div>
+        </section>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const gameData = [
-                { id: 1, doc: "Mémoire Environnement", desc: "Document de réponse à appel d'offres présentant la politique environnementale de l'entreprise, les mesures pour limiter les impacts du chantier (déchets, nuisances, biodiversité, ressources) et les certifications détenues (ISO 14001, HQE…)." },
-                { id: 2, doc: "SOGED", desc: "Schéma d'Organisation et de Gestion des Déchets : feuille de route opérationnelle décrivant le tri, la collecte, le transport, la traçabilité (BSD) et les filières de valorisation/élimination des déchets de chantier." },
-                { id: 3, doc: "PAQ (Plan de contrôle)", desc: "Plan d'Assurance Qualité : document contractuel détaillant les procédures de contrôle interne, les points d'arrêt, les essais, la gestion des non-conformités et la traçabilité pour garantir la conformité des travaux au CCTP." },
-                { id: 4, doc: "SEVE", desc: "Éco-comparateur en ligne pour les Travaux Publics permettant d'évaluer et comparer l'impact environnemental (émissions CO₂, énergie, ressources) de différentes variantes techniques d'un projet routier ou VRD." },
-                { id: 5, doc: "PRE", desc: "Plan de Respect de l'Environnement : document opérationnel propre au chantier identifiant les risques environnementaux (eau, sol, bruit, air, faune/flore) et définissant les mesures de prévention, les procédures d'urgence et les responsabilités." },
-                { id: 6, doc: "Registre des Terres Excavées", desc: "Registre chronologique obligatoire (loi AGEC 2020) traçant chaque lot de terres excavées : origine, code déchet, quantité, destination et filière. Données à déclarer au RNDTS pour les volumes ≥ 500 m³." },
-            ];
-            const draggableContainer = document.getElementById('draggable-items');
-            const dropzoneContainer = document.getElementById('drop-zones');
-            const scoreEl = document.getElementById('score');
-            const timerEl = document.getElementById('timer');
-            const completionMessage = document.getElementById('completion-message');
-            const completionText = document.getElementById('completion-text');
-            const restartBtn = document.getElementById('restart-btn');
-            let score = 0, timerInterval, seconds = 0, draggedItem = null, gameStarted = false;
 
-            function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
-            function startTimer() { if (gameStarted) return; gameStarted = true; timerInterval = setInterval(() => { seconds++; timerEl.textContent = seconds + 's'; }, 1000); }
-            function stopTimer() { clearInterval(timerInterval); }
+    <footer class="game-footer">
+        <button class="btn-reset" id="resetBtn">🔄 Recommencer</button>
+    </footer>
+</main>
 
-            function initGame() {
-                score = 0; seconds = 0; gameStarted = false; stopTimer();
-                scoreEl.textContent = '0'; timerEl.textContent = '0s';
-                completionMessage.style.display = 'none';
-                draggableContainer.innerHTML = ''; dropzoneContainer.innerHTML = '';
+<div class="modal-overlay" id="modal">
+    <div class="modal-box">
+        <div class="emoji">🏆</div>
+        <h2>Bravo !</h2>
+        <p>Tous les documents associés en <strong id="finalTime"></strong> !</p>
+        <button class="btn-replay" id="replayBtn">🔄 Rejouer</button>
+    </div>
+</div>
 
-                const shuffledDocs = [...gameData]; shuffleArray(shuffledDocs);
-                const shuffledZones = [...gameData]; shuffleArray(shuffledZones);
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const DATA = [
+        { id: '1', doc: 'Mémoire Environnement', desc: "Document de réponse à appel d'offres présentant la politique environnementale, les mesures pour limiter les impacts du chantier et les certifications (ISO 14001, HQE…)." },
+        { id: '2', doc: 'SOGED', desc: "Schéma d'Organisation et de Gestion des Déchets : tri, collecte, transport, traçabilité (BSD) et filières de valorisation/élimination des déchets." },
+        { id: '3', doc: 'PAQ (Plan de contrôle)', desc: "Plan d'Assurance Qualité : procédures de contrôle interne, points d'arrêt, essais, gestion des non-conformités pour garantir la conformité au CCTP." },
+        { id: '4', doc: 'SEVE', desc: "Éco-comparateur en ligne pour les TP permettant de comparer l'impact environnemental (CO₂, énergie) de variantes techniques d'un projet routier ou VRD." },
+        { id: '5', doc: 'PRE', desc: "Plan de Respect de l'Environnement : identification des risques environnementaux du chantier (eau, sol, bruit, faune/flore) et mesures de prévention et procédures d'urgence." },
+        { id: '6', doc: 'Registre des Terres Excavées', desc: "Registre chronologique obligatoire (loi AGEC 2020) traçant chaque lot de terres : origine, code déchet, quantité, destination. Déclaration au RNDTS si ≥ 500 m³." },
+    ];
 
-                shuffledDocs.forEach(item => {
-                    const el = document.createElement('div');
-                    el.classList.add('draggable-item'); el.setAttribute('draggable', 'true');
-                    el.dataset.id = item.id; el.textContent = item.doc;
-                    draggableContainer.appendChild(el);
-                });
+    const itemsList = document.getElementById('itemsList');
+    const targetsList = document.getElementById('targetsList');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const instruction = document.getElementById('instruction');
+    const modal = document.getElementById('modal');
+    const finalTimeEl = document.getElementById('finalTime');
 
-                shuffledZones.forEach(item => {
-                    const zone = document.createElement('div');
-                    zone.classList.add('drop-zone'); zone.dataset.id = item.id;
-                    const content = document.createElement('div');
-                    content.classList.add('drop-zone-content'); content.textContent = item.desc;
-                    zone.appendChild(content); dropzoneContainer.appendChild(zone);
-                });
-                addDragListeners();
-            }
+    let selected = null, score = 0, seconds = 0, interval = null;
 
-            function addDragListeners() {
-                document.querySelectorAll('.draggable-item').forEach(d => {
-                    d.addEventListener('dragstart', e => { startTimer(); draggedItem = d; d.classList.add('dragging'); e.dataTransfer.setData('text/plain', d.dataset.id); });
-                    d.addEventListener('dragend', () => { d.classList.remove('dragging'); draggedItem = null; });
-                });
-                document.querySelectorAll('.drop-zone').forEach(z => {
-                    z.addEventListener('dragover', e => { e.preventDefault(); if (!z.classList.contains('correct')) z.classList.add('hover'); });
-                    z.addEventListener('dragleave', () => z.classList.remove('hover'));
-                    z.addEventListener('drop', e => {
-                        e.preventDefault(); z.classList.remove('hover');
-                        if (z.classList.contains('correct')) return;
-                        const draggedId = e.dataTransfer.getData('text/plain');
-                        if (draggedId === z.dataset.id) { handleCorrect(draggedItem, z); } else { handleIncorrect(draggedItem); }
-                    });
-                });
-                // Touch support (tap to select, tap to place)
-                let selectedItem = null;
-                document.body.addEventListener('click', e => {
-                    const target = e.target;
-                    if (target.classList.contains('draggable-item') && target.draggable) {
-                        startTimer();
-                        if (selectedItem) selectedItem.classList.remove('dragging');
-                        selectedItem = target; selectedItem.classList.add('dragging');
-                    } else if (target.closest('.drop-zone') && selectedItem) {
-                        const zone = target.closest('.drop-zone');
-                        if (zone.classList.contains('correct')) return;
-                        if (selectedItem.dataset.id === zone.dataset.id) { handleCorrect(selectedItem, zone); }
-                        else { handleIncorrect(selectedItem); }
-                        selectedItem.classList.remove('dragging'); selectedItem = null;
-                    } else { if (selectedItem) { selectedItem.classList.remove('dragging'); selectedItem = null; } }
-                });
-            }
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
 
-            function handleCorrect(item, zone) {
-                score++; scoreEl.textContent = score;
-                zone.classList.add('correct'); zone.innerHTML = '';
-                zone.appendChild(item); item.setAttribute('draggable', 'false'); item.classList.remove('dragging');
-                const descEl = document.createElement('div'); descEl.className = 'drop-zone-content';
-                descEl.textContent = gameData.find(d => d.id == zone.dataset.id).desc;
-                zone.appendChild(descEl);
-                if (score === gameData.length) {
-                    stopTimer();
-                    completionText.textContent = 'Tous les documents associés en ' + seconds + ' secondes. Vous maîtrisez vos outils environnementaux ! 💪';
-                    completionMessage.style.display = 'block';
-                }
-            }
+    function startTimer() {
+        clearInterval(interval);
+        seconds = 0;
+        interval = setInterval(() => {
+            seconds++;
+            const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            timerEl.textContent = m + ':' + s;
+        }, 1000);
+    }
 
-            function handleIncorrect(item) {
-                item.classList.add('shake');
-                setTimeout(() => item.classList.remove('shake'), 500);
-            }
+    function init() {
+        score = 0; selected = null;
+        scoreEl.textContent = '0';
+        timerEl.textContent = '00:00';
+        modal.classList.remove('show');
+        instruction.textContent = '👆 Tapez un document, puis tapez sa description';
+        itemsList.innerHTML = '';
+        targetsList.innerHTML = '';
 
-            restartBtn.addEventListener('click', initGame);
-            initGame();
+        const shuffledDocs = shuffle(DATA);
+        const shuffledDescs = shuffle(DATA);
+
+        shuffledDocs.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'doc-card';
+            el.draggable = true;
+            el.dataset.id = d.id;
+            el.textContent = d.doc;
+
+            el.addEventListener('click', () => {
+                if (el.classList.contains('matched')) return;
+                if (selected) selected.classList.remove('selected');
+                selected = el;
+                el.classList.add('selected');
+                instruction.textContent = '👇 Maintenant tapez la description correspondante';
+            });
+
+            el.addEventListener('dragstart', e => {
+                if (el.classList.contains('matched')) { e.preventDefault(); return; }
+                e.dataTransfer.setData('text/plain', el.dataset.id);
+                setTimeout(() => el.classList.add('dragging'), 0);
+                if (selected) selected.classList.remove('selected');
+                selected = el;
+                el.classList.add('selected');
+            });
+            el.addEventListener('dragend', () => el.classList.remove('dragging'));
+
+            itemsList.appendChild(el);
         });
-    </script>
+
+        shuffledDescs.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'desc-target';
+            el.dataset.id = d.id;
+            el.innerHTML = '<span class="match-title"></span><span class="match-desc">' + d.desc + '</span>';
+
+            el.addEventListener('click', () => {
+                if (!selected || el.classList.contains('correct')) return;
+                checkMatch(selected, el);
+            });
+
+            el.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (!el.classList.contains('correct')) el.classList.add('drag-over');
+            });
+            el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+            el.addEventListener('drop', e => {
+                e.preventDefault();
+                el.classList.remove('drag-over');
+                if (el.classList.contains('correct')) return;
+                const id = e.dataTransfer.getData('text/plain');
+                const card = document.querySelector('.doc-card[data-id="' + id + '"]');
+                if (card) checkMatch(card, el);
+            });
+
+            targetsList.appendChild(el);
+        });
+
+        startTimer();
+    }
+
+    function checkMatch(card, target) {
+        if (card.dataset.id === target.dataset.id) {
+            // ✅ Correct
+            score++;
+            scoreEl.textContent = score;
+            card.classList.remove('selected');
+            card.classList.add('matched');
+            target.classList.add('correct');
+            const docName = DATA.find(d => d.id === card.dataset.id).doc;
+            target.querySelector('.match-title').textContent = '✅ ' + docName;
+            selected = null;
+            instruction.textContent = score < 6 ? '👆 Tapez un document, puis tapez sa description' : '🎉 Terminé !';
+
+            if (score === DATA.length) {
+                clearInterval(interval);
+                finalTimeEl.textContent = timerEl.textContent;
+                setTimeout(() => modal.classList.add('show'), 600);
+            }
+        } else {
+            // ❌ Incorrect
+            target.classList.add('incorrect');
+            card.classList.remove('selected');
+            selected = null;
+            instruction.textContent = '❌ Mauvaise association ! Réessayez.';
+            setTimeout(() => {
+                target.classList.remove('incorrect');
+                instruction.textContent = '👆 Tapez un document, puis tapez sa description';
+            }, 700);
+        }
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', init);
+    document.getElementById('replayBtn').addEventListener('click', init);
+    init();
+});
+</script>
 </body>
 </html>
